@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>JS of Life</title>
+
+	</head>
+	<body>
+		<canvas id='canvas' onclick='toggle(event)' width='300' height='300'></canvas>
+		<button id='make' type='button' onclick='next()'>Make it move</button>
+		<script>
+			// Set up canvas
+			var canvas = document.getElementById('canvas');
+			var rect = canvas.getBoundingClientRect();
+
+
+			// Make grid
+			var gridSize = 50;
+			function createArray() {
+				var arr = new Array(gridSize);
+				for (var r = 0; r < gridSize; ++r) {
+					arr[r] = new Array(gridSize);
+					for (var c = 0; c < gridSize; ++c) {
+						arr[r][c] = false;
+					}
+				}
+				return arr;
+			}
+			var grid = createArray();
+
+			function getMousePos(canvas, e) {
+        		return {
+            		x: e.clientX - rect.left,
+		            y: e.clientY - rect.top
+		        };
+		    }
+
+			function toggle(event) {
+				var etype = event.type;
+				/* the following is for compatability */
+				/* Moz populates the target property of the event object */
+				/* IE populates the srcElement property */
+				var etarget = event.target || event.srcElement;
+
+				//console.log(etype + ' '+etarget);
+				// Determine X and Y
+				var XY = getMousePos(canvas, event);
+				var r = Math.floor(XY.y / cellH);
+				var c = Math.floor(XY.x / cellW);
+				grid[r][c] = !grid[r][c];
+				draw();
+			}
+
+			// Determines height and widht for 
+			// each cell in relationship to context
+			var cellW = Math.floor(canvas.width / gridSize);
+			var cellH = Math.floor(canvas.height / gridSize);
+
+			// Draw each cell
+			function drawRect(ctx, r, c) {
+				if (grid[r][c]) {
+					ctx.fillStyle = 'red';
+				}
+				else {
+					ctx.fillStyle = 'pink';
+				}
+				ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+			}
+
+			// Draw on canvas
+			function draw() {
+	            var ctx = canvas.getContext('2d');
+	            ctx.fillStyle = 'black';
+	            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	            for (var r = 0; r < gridSize; ++r) {
+	            	for (var c = 0; c < gridSize; ++c) {
+	            		drawRect(ctx, r, c);
+	            	}
+	            }	
+			}
+
+			function get(r, c) {
+				if (grid[r] && grid[r][c]) {
+					return 1;
+				}
+				return 0;
+			}
+
+			function count(r, c) {
+				// Right = c+1
+				var sum = get(r,c+1);
+				// Left = c-1
+				sum += get(r,c-1);
+				// Top = r-1
+				sum += get(r-1,c);
+				// Top left = r-1, c-1
+				sum += get(r-1,c-1);
+				// Top right = r-1, c+1
+				sum += get(r-1,c+1);
+				// Bottom = r+1
+				sum += get(r+1,c);
+				// Bottom left = r+1, c-1
+				sum += get(r+1,c-1);
+				// Bottom right = r+1, c+1
+				sum += get(r+1,c+1);
+				return sum;
+			}
+
+			function calc(nxt, r, c) {
+				var sum = count(r, c);
+				if ((sum == 2 && grid[r][c]) || sum == 3) {
+					nxt[r][c] = true;
+				}
+			}
+
+			function next() {
+				var nxt = createArray();
+				for (var r = 0; r < gridSize; ++r) {
+					for (var c = 0; c < gridSize; ++c) {
+						calc(nxt, r, c);
+					}
+				}
+				grid = nxt;
+				draw();
+			}
+
+			// IT'S ALIVE!
+			draw();
+		</script>
+	</body>
+</html>
